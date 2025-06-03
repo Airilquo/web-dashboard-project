@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Weather Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100 p-6 max-w-xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4">Weather Dashboard</h1>
+
+    <div class="mb-4">
+      <input
+        id="cityInput"
+        type="text"
+        placeholder="Enter city (e.g., London)"
+        class="border p-2 w-full"
+      />
+      <button
+        onclick="getWeather()"
+        class="mt-2 bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Search
+      </button>
+    </div>
+
+    <canvas id="weatherChart"></canvas>
+
+    <script>
+      let weatherChart;
+
+      async function getWeather() {
+        const city = document.getElementById("cityInput").value.trim();
+        if (!city) {
+          alert("Please enter a city name");
+          return;
+        }
+
+        const apiKey = "5d227aa3157f4848422e896fae72f231"; //
+        const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.cod !== "200") {
+            alert("City not found or API error");
+            return;
+          }
+
+          const labels = data.list.slice(0, 5).map((item) => item.dt_txt);
+          const temps = data.list.slice(0, 5).map((item) => item.main.temp);
+
+          if (weatherChart) weatherChart.destroy();
+
+          const ctx = document.getElementById("weatherChart").getContext("2d");
+          weatherChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: `Temperature (°C) in ${city}`,
+                  data: temps,
+                  borderColor: "blue",
+                  fill: false,
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: { beginAtZero: false },
+              },
+            },
+          });
+        } catch (error) {
+          alert("Failed to fetch weather data");
+        }
+      }
+    </script>
+  </body>
+</html>
